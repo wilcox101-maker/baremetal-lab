@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Baremetal Lab — Generator</title>
+<style>
+  :root { --bg:#0f1419; --card:#1a2332; --text:#e7ecf3; --muted:#8b9bb4; --accent:#3d8bfd; --border:#2a3548; }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family: system-ui, -apple-system, sans-serif; background:var(--bg); color:var(--text); line-height:1.5; }
+  header { padding:1.5rem 2rem; border-bottom:1px solid var(--border); }
+  header h1 { margin:0; font-size:1.4rem; }
+  header p { margin:.4rem 0 0; color:var(--muted); font-size:.9rem; }
+  main { max-width:900px; margin:0 auto; padding:1.5rem; }
+  section { background:var(--card); border:1px solid var(--border); border-radius:10px; padding:1.2rem 1.4rem; margin-bottom:1rem; }
+  section h2 { margin:0 0 .8rem; font-size:1rem; color:var(--accent); }
+  label { display:block; margin:.6rem 0 .2rem; font-size:.85rem; color:var(--muted); }
+  select, input[type=text] { width:100%; padding:.5rem .6rem; background:#0d1117; color:var(--text); border:1px solid var(--border); border-radius:6px; font-size:.95rem; }
+  .row { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
+  @media (max-width:600px) { .row { grid-template-columns:1fr; } }
+  .checks { display:flex; flex-wrap:wrap; gap:.5rem .9rem; margin-top:.4rem; }
+  .checks label { display:flex; align-items:center; gap:.35rem; margin:0; color:var(--text); font-size:.9rem; }
+  button { background:var(--accent); color:#fff; border:none; padding:.65rem 1.2rem; border-radius:6px; font-size:.95rem; cursor:pointer; margin-top:.8rem; }
+  button:hover { filter:brightness(1.1); }
+  pre { background:#0d1117; border:1px solid var(--border); border-radius:8px; padding:1rem; overflow:auto; font-size:.8rem; max-height:480px; }
+  .actions { display:flex; gap:.6rem; flex-wrap:wrap; }
+  .note { font-size:.8rem; color:var(--muted); margin-top:.5rem; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Baremetal Lab Generator</h1>
+  <p>Configure hardware and services, then download a docker-compose.yml</p>
+</header>
+<main>
+
+<section>
+  <h2>Hardware</h2>
+  <div class="row">
+    <div>
+      <label>CPU cores for containers</label>
+      <select id="cpu">
+        <option>1</option><option>2</option><option selected>4</option><option>6</option><option>8</option><option>12</option><option>16</option>
+      </select>
+    </div>
+    <div>
+      <label>RAM for Docker host (GB)</label>
+      <select id="ram">
+        <option>2</option><option>4</option><option>8</option><option selected>16</option><option>32</option><option>64</option>
+      </select>
+    </div>
+  </div>
+  <div class="row">
+    <div>
+      <label>Primary storage</label>
+      <select id="storage">
+        <option>NVMe/SSD (local)</option>
+        <option>USB drive</option>
+        <option>Network share (NFS/SMB)</option>
+        <option>eMMC</option>
+      </select>
+    </div>
+    <div>
+      <label>Ethernet NICs</label>
+      <select id="nics">
+        <option>1 (WAN only — USB NIC for LAN)</option>
+        <option selected>2 (WAN + LAN)</option>
+        <option>3+</option>
+        <option>4+ (multi-WAN or extra LAN)</option>
+      </select>
+    </div>
+  </div>
+  <div class="row">
+    <div>
+      <label>Wireless</label>
+      <select id="wifi">
+        <option selected>None (use separate AP)</option>
+        <option>USB Wi-Fi adapter</option>
+        <option>Built-in Wi-Fi</option>
+        <option>PCIe Wi-Fi card</option>
+      </select>
+    </div>
+    <div>
+      <label>Timezone</label>
+      <input type="text" id="tz" value="America/Detroit">
+    </div>
+  </div>
+  <label>USB / peripherals</label>
+  <div class="checks" id="usb">
+    <label><input type="checkbox" value="USB storage"> USB storage</label>
+    <label><input type="checkbox" value="Zigbee/Z-Wave dongle"> Zigbee/Z-Wave</label>
+    <label><input type="checkbox" value="Bluetooth adapter"> Bluetooth</label>
+    <label><input type="checkbox" value="USB Wi-Fi"> USB Wi-Fi</label>
+    <label><input type="checkbox" value="Coral TPU"> Coral TPU</label>
+    <label><input type="checkbox" value="USB LTE modem"> USB LTE modem</label>
+  </div>
+</section>
+
+<section>
+  <h2>Network</h2>
+  <div class="row">
+    <div>
+      <label>LAN subnet</label>
+      <input type="text" id="subnet" value="192.168.50.0/24">
+    </div>
+    <div>
+      <label>Docker host IP</label>
+      <input type="text" id="hostip" value="192.168.50.10">
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>Services</h2>
+  <div class="checks" id="services">
+    <label><input type="checkbox" value="adguard" checked> AdGuard Home</label>
+    <label><input type="checkbox" value="unbound" checked> Unbound</label>
+    <label><input type="checkbox" value="ha" checked> Home Assistant</label>
+    <label><input type="checkbox" value="esphome"> ESPHome</label>
+    <label><input type="checkbox" value="mqtt"> Mosquitto (MQTT)</label>
+    <label><input type="checkbox" value="nextcloud"> Nextcloud</label>
+    <label><input type="checkbox" value="immich"> Immich</label>
+    <label><input type="checkbox" value="filebrowser"> FileBrowser</label>
+    <label><input type="checkbox" value="frigate"> Frigate</label>
+    <label><input type="checkbox" value="grafana"> Grafana</label>
+    <label><input type="checkbox" value="prometheus"> Prometheus</label>
+    <label><input type="checkbox" value="kuma"> Uptime Kuma</label>
+    <label><input type="checkbox" value="npm"> Nginx Proxy Manager</label>
+    <label><input type="checkbox" value="tailscale"> Tailscale</label>
+  </div>
+  <button onclick="generate()">Generate docker-compose.yml</button>
+</section>
+
+<section id="output" style="display:none">
+  <h2>Generated compose</h2>
+  <div class="actions">
+    <button onclick="download()">Download docker-compose.yml</button>
+    <button onclick="copyText()">Copy to clipboard</button>
+  </div>
+  <pre id="yaml"></pre>
+  <p class="note">Edit passwords and the Tailscale auth key before running. Point LAN DNS to the Docker host IP for AdGuard.</p>
+</section>
+
+</main>
+<script>
+const services = {
+  adguard: { vol: ['adguard_work','adguard_conf'], svc: '  adguardhome:\n    image: adguard/adguardhome:latest\n    container_name: adguardhome\n    restart: unless-stopped\n    networks: [proxy, backend]\n    ports: ["53:53/udp","53:53/tcp","3000:3000/tcp"]\n    volumes:\n      - adguard_work:/opt/adguardhome/work\n      - adguard_conf:/opt/adguardhome/conf\n' },
+  unbound: { vol: ['unbound_conf'], svc: '  unbound:\n    image: mvance/unbound:latest\n    container_name: unbound\n    restart: unless-stopped\n    networks: [backend]\n    ports: ["5335:53/udp","5335:53/tcp"]\n    volumes:\n      - unbound_conf:/opt/unbound/etc/unbound\n' },
+  ha: { vol: ['ha_config'], svc: (tz) => '  homeassistant:\n    image: ghcr.io/home-assistant/home-assistant:stable\n    container_name: homeassistant\n    restart: unless-stopped\n    privileged: true\n    network_mode: host\n    volumes:\n      - ha_config:/config\n      - /etc/localtime:/etc/localtime:ro\n    environment:\n      - TZ=' + tz + '\n' },
+  esphome: { vol: ['esphome_config'], svc: '  esphome:\n    image: ghcr.io/esphome/esphome:stable\n    container_name: esphome\n    restart: unless-stopped\n    networks: [proxy]\n    ports: ["6052:6052"]\n    volumes:\n      - esphome_config:/config\n' },
+  mqtt: { vol: ['mosquitto_data','mosquitto_log'], svc: '  mosquitto:\n    image: eclipse-mosquitto:2\n    container_name: mosquitto\n    restart: unless-stopped\n    networks: [proxy, backend]\n    ports: ["1883:1883","9001:9001"]\n    volumes:\n      - mosquitto_data:/mosquitto/data\n      - mosquitto_log:/mosquitto/log\n' },
+  nextcloud: { vol: ['nextcloud_data','nextcloud_db'], svc: '  nextcloud-db:\n    image: mariadb:11\n    container_name: nextcloud-db\n    restart: unless-stopped\n    networks: [backend]\n    environment:\n      MYSQL_ROOT_PASSWORD: change_me_root\n      MYSQL_DATABASE: nextcloud\n      MYSQL_USER: nextcloud\n      MYSQL_PASSWORD: change_me_nextcloud\n    volumes:\n      - nextcloud_db:/var/lib/mysql\n  nextcloud:\n    image: nextcloud:stable\n    container_name: nextcloud\n    restart: unless-stopped\n    networks: [proxy, backend]\n    depends_on: [nextcloud-db]\n    environment:\n      MYSQL_HOST: nextcloud-db\n      MYSQL_DATABASE: nextcloud\n      MYSQL_USER: nextcloud\n      MYSQL_PASSWORD: change_me_nextcloud\n    volumes:\n      - nextcloud_data:/var/www/html\n' },
+  immich: { vol: ['immich_data','immich_db'], svc: '  immich-db:\n    image: tensorchord/pgvecto-rs:pg14-v0.2.0\n    container_name: immich-db\n    restart: unless-stopped\n    networks: [backend]\n    environment:\n      POSTGRES_PASSWORD: change_me_immich\n      POSTGRES_USER: immich\n      POSTGRES_DB: immich\n    volumes:\n      - immich_db:/var/lib/postgresql/data\n  immich:\n    image: ghcr.io/immich-app/immich-server:release\n    container_name: immich\n    restart: unless-stopped\n    networks: [proxy, backend]\n    depends_on: [immich-db]\n    ports: ["2283:2283"]\n    environment:\n      DB_HOSTNAME: immich-db\n      DB_USERNAME: immich\n      DB_PASSWORD: change_me_immich\n      DB_DATABASE_NAME: immich\n    volumes:\n      - immich_data:/usr/src/app/upload\n' },
+  filebrowser: { vol: ['filebrowser_data','filebrowser_config'], svc: '  filebrowser:\n    image: filebrowser/filebrowser:latest\n    container_name: filebrowser\n    restart: unless-stopped\n    networks: [proxy]\n    ports: ["8080:80"]\n    volumes:\n      - filebrowser_data:/srv\n      - filebrowser_config:/config\n' },
+  frigate: { vol: ['frigate_config','frigate_media'], svc: '  frigate:\n    image: ghcr.io/blakeblackshear/frigate:stable\n    container_name: frigate\n    restart: unless-stopped\n    privileged: true\n    networks: [proxy]\n    ports: ["5000:5000","8554:8554","8555:8555/tcp","8555:8555/udp"]\n    volumes:\n      - frigate_config:/config\n      - frigate_media:/media/frigate\n      - /etc/localtime:/etc/localtime:ro\n' },
+  grafana: { vol: ['grafana_data'], svc: '  grafana:\n    image: grafana/grafana:latest\n    container_name: grafana\n    restart: unless-stopped\n    networks: [proxy, backend]\n    ports: ["3001:3000"]\n    environment:\n      GF_SECURITY_ADMIN_PASSWORD: change_me_grafana\n    volumes:\n      - grafana_data:/var/lib/grafana\n' },
+  prometheus: { vol: ['prometheus_data'], svc: '  prometheus:\n    image: prom/prometheus:latest\n    container_name: prometheus\n    restart: unless-stopped\n    networks: [backend]\n    ports: ["9090:9090"]\n    volumes:\n      - prometheus_data:/prometheus\n' },
+  kuma: { vol: ['kuma_data'], svc: '  uptime-kuma:\n    image: louislam/uptime-kuma:1\n    container_name: uptime-kuma\n    restart: unless-stopped\n    networks: [proxy]\n    ports: ["3002:3001"]\n    volumes:\n      - kuma_data:/app/data\n' },
+  npm: { vol: ['npm_data','npm_letsencrypt'], svc: '  nginx-proxy-manager:\n    image: jc21/nginx-proxy-manager:latest\n    container_name: npm\n    restart: unless-stopped\n    networks: [proxy]\n    ports: ["80:80","443:443","81:81"]\n    volumes:\n      - npm_data:/data\n      - npm_letsencrypt:/etc/letsencrypt\n' },
+  tailscale: { vol: ['tailscale_state'], svc: (subnet) => '  tailscale:\n    image: tailscale/tailscale:latest\n    container_name: tailscale\n    restart: unless-stopped\n    network_mode: host\n    cap_add: [NET_ADMIN, SYS_MODULE]\n    volumes:\n      - /dev/net/tun:/dev/net/tun\n      - tailscale_state:/var/lib/tailscale\n    environment:\n      TS_AUTHKEY: tskey-auth-xxxxxxxxxxxx\n      TS_ROUTES: ' + subnet + '\n      TS_STATE_DIR: /var/lib/tailscale\n' }
+};
+
+let generated = '';
+
+function generate() {
+  const cpu = document.getElementById('cpu').value;
+  const ram = document.getElementById('ram').value;
+  const storage = document.getElementById('storage').value;
+  const nics = document.getElementById('nics').value;
+  const wifi = document.getElementById('wifi').value;
+  const tz = document.getElementById('tz').value;
+  const subnet = document.getElementById('subnet').value;
+  const hostip = document.getElementById('hostip').value;
+
+  const selected = [...document.querySelectorAll('#services input:checked')].map(c => c.value);
+  const vols = new Set();
+  let svcBlocks = '';
+
+  for (const key of selected) {
+    const s = services[key];
+    if (!s) continue;
+    s.vol.forEach(v => vols.add(v));
+    svcBlocks += typeof s.svc === 'function'
+      ? (key === 'ha' ? s.svc(tz) : s.svc(subnet))
+      : s.svc;
+  }
+
+  const volYaml = [...vols].map(v => '  ' + v + ':').join('\n');
+
+  generated = '# Generated by Baremetal Lab Generator\n# CPU: ' + cpu + ' cores | RAM: ' + ram + 'G | Storage: ' + storage + '\n# NICs: ' + nics + ' | Wi-Fi: ' + wifi + '\n# LAN: ' + subnet + ' | Host: ' + hostip + '\n\nversion: "3.8"\n\nnetworks:\n  proxy:\n  backend:\n\nvolumes:\n' + volYaml + '\n\nservices:\n' + svcBlocks;
+
+  document.getElementById('yaml').textContent = generated;
+  document.getElementById('output').style.display = 'block';
+  document.getElementById('output').scrollIntoView({ behavior: 'smooth' });
+}
+
+function download() {
+  const blob = new Blob([generated], { type: 'text/yaml' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'docker-compose.yml';
+  a.click();
+}
+
+function copyText() {
+  navigator.clipboard.writeText(generated);
+  alert('Copied to clipboard');
+}
+</script>
+</body>
+</html>
